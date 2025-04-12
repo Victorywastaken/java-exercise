@@ -47,4 +47,10 @@ public class Pawn extends Piece {
 
         return false;
     }
+
+    @Override
+    protected boolean updatePosition(Position newPosition) {
+        // Bug: forgot to update hasMoved flag
+        return super.updatePosition(newPosition);
+    }
 }

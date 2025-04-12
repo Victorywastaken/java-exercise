@@ -21,21 +21,28 @@ public abstract class Piece {
     }
 
     public Position getPosition() {
-        return new Position(position.getRow(), position.getColumn());
+        return position;
     }
 
     public void setPosition(Position position) {
-        if (this.position != null &&
-            this.position.getRow() == position.getRow() &&
-            this.position.getColumn() == position.getColumn()) {
+        if (position.getRow() < 0 || position.getColumn() < 0) {
             return;
         }
         this.position = position;
     }
 
     protected boolean updatePosition(Position newPosition) {
-        this.position = newPosition;
+        position = newPosition;
         return true;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Piece) {
+            Piece other = (Piece) obj;
+            return color == other.color;
+        }
+        return false;
     }
 }
 

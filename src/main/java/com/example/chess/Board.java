@@ -1,5 +1,7 @@
 package com.example.chess;
 
+import com.example.chess.pieces.*;
+
 public class Board {
     private Piece[][] squares;
     private boolean whiteToMove;
@@ -13,27 +15,32 @@ public class Board {
     }
 
     private void initializeBoard() {
-        // Bug 1: Board is initialized with wrong indices
-        for (int i = 0; i <= 8; i++) {  // Will cause ArrayIndexOutOfBounds
-            for (int j = 0; j <= 8; j++) {
-                // Empty initialization for now
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if (i == 1) {
+                    squares[i][j] = new Pawn(Color.BLACK, new Position(i, j));
+                } else if (i == 6) {
+                    squares[i][j] = new Pawn(Color.WHITE, new Position(i, j));
+                }
             }
         }
     }
 
     public boolean movePiece(Position from, Position to) {
-        Piece piece = getPiece(from);
-        if (piece == null) return false;
-
-        // Bug 2: Doesn't properly validate turn order
-        if (moveCount > 10) {
-            whiteToMove = !whiteToMove; // Switches turn order after 10 moves
+        if (!isValidPosition(from) || !isValidPosition(to)) {
+            return false;
         }
 
-        // Bug 3: Allows capture of same color pieces
+        Piece piece = getPiece(from);
+        if (piece == null || piece.getColor() != (whiteToMove ? Color.WHITE : Color.BLACK)) {
+            return false;
+        }
+
         if (piece.isValidMove(to, this)) {
             squares[to.getRow()][to.getColumn()] = piece;
             squares[from.getRow()][from.getColumn()] = null;
+            piece.setPosition(to);
+            whiteToMove = !whiteToMove;
             moveCount++;
             return true;
         }
@@ -41,24 +48,47 @@ public class Board {
     }
 
     public Piece getPiece(Position pos) {
-        // Bug 4: Returns piece from wrong position
-        if (pos.getRow() == 0) {
-            return squares[7][pos.getColumn()]; // Returns piece from opposite end
+        if (!isValidPosition(pos)) {
+            return null;
         }
         return squares[pos.getRow()][pos.getColumn()];
     }
 
+    public boolean isOccupied(Position pos) {
+        return getPiece(pos) != null;
+    }
+
     public boolean isCheck(Color color) {
-        // Bug 5: Always returns true after 30 moves
-        if (moveCount > 30) {
-            return true;
+        Position kingPos = findKing(color);
+        if (kingPos == null) return false;
+
+        for (int i = 0; i <= 7; i++) {
+            for (int j = 0; j <= 7; j++) {
+                Piece piece = squares[i][j];
+                if (piece != null && piece.getColor() != color) {
+                    if (piece.isValidMove(kingPos, this)) {
+                        return true;
+                    }
+                }
+            }
         }
         return false;
     }
 
+    private Position findKing(Color color) {
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                Piece piece = squares[i][j];
+                if (piece != null && piece.getColor() == color) {
+                    return new Position(i, j);
+                }
+            }
+        }
+        return null;
+    }
+
     public boolean isValidPosition(Position pos) {
-        // Bug 6: Incorrect boundary check
-        return pos.getRow() >= 0 && pos.getRow() <= 8 &&
-               pos.getColumn() >= 0 && pos.getColumn() <= 8;
+        return pos != null && pos.getRow() >= 0 && pos.getRow() <= 7 &&
+               pos.getColumn() >= 0 && pos.getColumn() <= 7;
     }
 }
